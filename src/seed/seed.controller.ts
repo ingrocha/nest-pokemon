@@ -5,6 +5,8 @@ import { SeedService } from './seed.service';
 export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 
+  // const pokemonService = Inject(PokemonService);
+
   @Get()
   executeSeed() {
     return this.seedService.executeSeed();

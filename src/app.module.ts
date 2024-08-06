@@ -18,5 +18,6 @@ import { SeedModule } from './seed/seed.module';
   ],
   controllers: [],
   providers: [],
+  exports: [PokemonModule],
 })
 export class AppModule {}

@@ -1,14 +1,11 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import { isValidObjectId, Model } from 'mongoose';
 import { Pokemon } from './entities/pokemon.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import { handleExceptions } from '../common/functions/handleInsertExceptions.fn';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class PokemonService {
@@ -24,12 +21,22 @@ export class PokemonService {
       const pokemon = await this.pokemonModel.create(createPokemonDto);
       return pokemon;
     } catch (error) {
-      this.handleExceptions(error);
+      handleExceptions(error);
     }
   }
 
-  findAll() {
-    return `This action returns all pokemon`;
+  public async createPool(CreatePokemonDto: CreatePokemonDto[]) {
+    try {
+      const pokemon = await this.pokemonModel.insertMany(CreatePokemonDto);
+      return pokemon;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+  findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    return this.pokemonModel.find().limit(limit).skip(offset);
   }
 
   async findOne(id: string) {
@@ -62,7 +69,7 @@ export class PokemonService {
 
       return { ...pokemon.toJSON(), ...updatePokemonDto };
     } catch (error) {
-      this.handleExceptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -81,17 +88,5 @@ export class PokemonService {
       throw new NotFoundException(`Pokemon with id ${id} does not exist`);
 
     return;
-  }
-
-  private handleExceptions(error) {
-    if (error.code === 11000) {
-      throw new BadRequestException(
-        `Pokemon exists in db ${JSON.stringify(error.keyValue)}`,
-      );
-    }
-    console.log(error);
-    throw new InternalServerErrorException(
-      `Can't create Pokemon - check servers logs`,
-    );
   }
 }
